@@ -160,8 +160,8 @@ async def handler(event):
             f"________________\n\n"
             f"{text}\n"
             f"________________\n\n"
-            f"👤 <b>КЛЕНТ ЛИЧКАСИ</b> {owner_display}\n"
-            f"📞 <b>КЛЕНТ НОМЕРИ</b> {phone_display}\n"
+            f"👤 <b>КЛЕНТ ЛИЧКАСИ : </b> {owner_display}\n"
+            f"📞 <b>КЛЕНТ НОМЕРИ : </b> {phone_display}\n\n"
             f"👉🏻 <b></b> {profile_link}"
         )
 
