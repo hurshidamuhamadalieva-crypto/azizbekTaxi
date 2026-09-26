@@ -82,7 +82,29 @@ KEYWORDS = [
     '1 та қиз бор', '1 та қиз бола бор', 'қиз бола бор', 'аёл киши бор машина сўрашяпти', 'аёллар бор машина керак',
 
     # mashina
-    'машина керак', 'машина кере', 'машина керeк', 'багажли машина керак', 'машина излаяпман', 'мошина керак'
+    'машина керак', 'машина кере', 'машина керeк', 'багажли машина керак', 'машина излаяпман', 'мошина керак',
+
+    'ОДАМ БОР','ОДАМБОР','ОДАМ БОР ЭКАН','ОДАМ БОР ЭДИ','ОДАМ БОРАКАН',
+
+    'БИТТА ОДАМ БОР','ИККИТА ОДАМ БОР','УЧТА ОДАМ БОР',"ТО'РТТА ОДАМ БОР",'ТОРТТА ОДАМ БОР',
+
+    'КОМПЛЕК ОДАМ БОР','КОМПЛЕКТ ОДАМ БОР','КОМПИЛЕК ОДАМ БОР','КАМПИЛЕК ОДАМ БОР',
+
+    '1ТА ОДАМ БОР','2ТА ОДАМ БОР','3ТА ОДАМ БОР','4ТА ОДАМ БОР',
+
+    'ОДАМ БОР 1','ОДАМ БОР 2','ОДАМ БОР 3','ОДАМ БОР 4',
+
+    'РИШТОНГА ОДАМ БОР','ТОШКЕНТГА ОДАМ БОР',"ТОШКЕНДАН ФАРҒОНАГА ОДАМ БОР",
+
+    'ТЎРТА ОДАМ БОР','ОДАМ БОР','КОМПЛЕКТ ОДАМ БОР','КОМПИЛЕКТ ОДАМ БОР','КАМПИЛЕК ОДАМ БОР',
+
+    'TOWГА 1КИШИ','ТОШКЕНТГА 1КИШИ',"ФАРҒОНАГА 1КИШИ",'РИШТОНГА 1КИШИ','1КИШИ БОР',
+
+    'TOWГА 2КИШИ','ТОШКЕНТГА 2КИШИ',"ФАРҒОНАГА 2КИШИ",'РИШТОНГА 2КИШИ','2КИШИ БОР',
+
+    'TOWГА 3КИШИ','ТОШКЕНТГА 3КИШИ',"ФАРҒОНАГА 3КИШИ",'РИШТОНГА 3КИШИ','3КИШИ БОР',
+
+    'TOWГА 4КИШИ','ТОШКЕНТГА 4КИШИ',"ФАРҒОНАГА 4КИШИ",'РИШТОНГА 4КИШИ','4КИШИ БОР',
 ]
 
 KEYWORDS_RE = re.compile("|".join(re.escape(k) for k in KEYWORDS), re.IGNORECASE)
@@ -116,12 +138,12 @@ async def handler(event):
         sender = await event.get_sender()
 
         username = getattr(sender, 'username', None)
-        owner_display = f"@{username}" if username else "Berkitilgan"
+        owner_display = f"@{username}" if username else "БЕРКИТИЛГАН"
 
         sender_id = getattr(sender, 'id', None)
         profile_link = (
-            f"<a href='tg://user?id={sender_id}'>Profilga o‘tish</a>"
-            if sender_id else "Berkitilgan"
+            f"<a href='tg://user?id={sender_id}'>ПРОФИЛГА ЎТИШ</a>"
+            if sender_id else "БЕРКИТИЛГАН"
         )
 
         phone = normalize_phone(sender.phone) if sender.phone else None
@@ -131,14 +153,15 @@ async def handler(event):
                 if phone:
                     break
 
-        phone_display = phone if phone else "Berkitilgan"
+        phone_display = phone if phone else "БЕРКИТИЛГАН"
 
         message_text = (
-            f"👤 <b></b> {owner_display}\n"
+            f"🚨 <b>ЯНГИ ЗАКАЗ</b>\n"
             f"________________\n\n"
             f"{text}\n"
             f"________________\n\n"
-            f"📞 <b></b> {phone_display}\n"
+            f"👤 <b>КЛЕНТ ЛИЧКАСИ</b> {owner_display}\n"
+            f"📞 <b>КЛЕНТ НОМЕРИ</b> {phone_display}\n"
             f"👉🏻 <b></b> {profile_link}"
         )
 
