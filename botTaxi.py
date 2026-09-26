@@ -105,6 +105,7 @@ KEYWORDS = [
     'TOWГА 3КИШИ','ТОШКЕНТГА 3КИШИ',"ФАРҒОНАГА 3КИШИ",'РИШТОНГА 3КИШИ','3КИШИ БОР',
 
     'TOWГА 4КИШИ','ТОШКЕНТГА 4КИШИ',"ФАРҒОНАГА 4КИШИ",'РИШТОНГА 4КИШИ','4КИШИ БОР',
+    "Farg‘ona pochta bor", 'pochta bor'
 ]
 
 KEYWORDS_RE = re.compile("|".join(re.escape(k) for k in KEYWORDS), re.IGNORECASE)
