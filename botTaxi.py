@@ -26,7 +26,7 @@ TARGET_CHAT_IDS = [
     -1004421086204
 ]
 
-# =================== KALIT SO‘ZLAR ===================
+# =================== KALIT SO'ZLAR ===================
 KEYWORDS = [
     # odam bor
     'odam bor','odambor','odam bor ekan','odam bor edi','odam borakan',
@@ -105,7 +105,7 @@ KEYWORDS = [
     'TOWГА 3КИШИ','ТОШКЕНТГА 3КИШИ',"ФАРҒОНАГА 3КИШИ",'РИШТОНГА 3КИШИ','3КИШИ БОР',
 
     'TOWГА 4КИШИ','ТОШКЕНТГА 4КИШИ',"ФАРҒОНАГА 4КИШИ",'РИШТОНГА 4КИШИ','4КИШИ БОР',
-    "Farg‘ona pochta bor", 'pochta bor', 'Rishtoni Uyratiga bita odam bor', "bita odam bor"
+    "Farg'ona pochta bor", 'pochta bor', 'Rishtoni Uyratiga bita odam bor', "bita odam bor"
 ]
 
 KEYWORDS_RE = re.compile("|".join(re.escape(k) for k in KEYWORDS), re.IGNORECASE)
@@ -136,16 +136,29 @@ async def handler(event):
         if not text or not KEYWORDS_RE.search(text):
             return
 
-        sender = await event.get_sender()
+        chat, sender = await asyncio.gather(
+            event.get_chat(),
+            event.get_sender()
+        )
+
+        group_name = getattr(chat, 'title', 'Nomaʼlum guruh')
 
         username = getattr(sender, 'username', None)
         owner_display = f"@{username}" if username else "БЕРКИТИЛГАН"
 
         sender_id = getattr(sender, 'id', None)
-        profile_link = (
-            f"<a href='tg://user?id={sender_id}'>ПРОФИЛГА ЎТИШ</a>"
-            if sender_id else "БЕРКИТИЛГАН"
-        )
+        sender_hash = getattr(sender, 'access_hash', None)
+
+        if username:
+            # Username orqali profilga o'tish eng ishonchli usul, hech qachon uzilib qolmaydi
+            profile_link = f"<a href='https://t.me/{username}'>ПРОФИЛГА ЎТИШ</a>"
+        elif sender_id and sender_hash:
+            # access_hash mavjud bo'lsa tg://user link ham ishonchli ishlaydi
+            profile_link = f"<a href='tg://user?id={sender_id}&hash={sender_hash}'>ПРОФИЛГА ЎТИШ</a>"
+        elif sender_id:
+            profile_link = f"<a href='tg://user?id={sender_id}'>ПРОФИЛГА ЎТИШ</a>"
+        else:
+            profile_link = "БЕРКИТИЛГАН"
 
         phone = normalize_phone(sender.phone) if sender.phone else None
         if not phone:
@@ -161,6 +174,7 @@ async def handler(event):
             f"________________\n\n"
             f"{text}\n"
             f"________________\n\n"
+            f"📍 <b>ГУРУҲ : </b> {group_name}\n"
             f"👤 <b>КЛЕНТ ЛИЧКАСИ : </b> {owner_display}\n"
             f"📞 <b>КЛЕНТ НОМЕРИ : </b> {phone_display}\n\n"
             f"👉🏻 <b></b> {profile_link}"
