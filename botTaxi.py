@@ -1,4 +1,5 @@
 import re
+import html
 import asyncio
 from telethon import TelegramClient, events
 
@@ -136,55 +137,52 @@ async def handler(event):
         if not text or not KEYWORDS_RE.search(text):
             return
 
-        chat, sender = await asyncio.gather(
-            event.get_chat(),
-            event.get_sender()
-        )
+        sender = await event.get_sender()
 
-        group_name = getattr(chat, 'title', 'Nomaʼlum guruh')
+        # --- Profil nomi ---
+        first = getattr(sender, 'first_name', None) or ''
+        last = getattr(sender, 'last_name', None) or ''
+        full_name = f"{first} {last}".strip()
+        if not full_name:
+            full_name = getattr(sender, 'title', None) or "БЕРКИТИЛГАН"
+        full_name = html.escape(full_name)
 
         username = getattr(sender, 'username', None)
-        owner_display = f"@{username}" if username else "БЕРКИТИЛГАН"
-
         sender_id = getattr(sender, 'id', None)
-        sender_hash = getattr(sender, 'access_hash', None)
 
-        if username:
-            # Username orqali profilga o'tish eng ishonchli usul, hech qachon uzilib qolmaydi
-            profile_link = f"<a href='https://t.me/{username}'>ПРОФИЛГА ЎТИШ</a>"
-        elif sender_id and sender_hash:
-            # access_hash mavjud bo'lsa tg://user link ham ishonchli ishlaydi
-            profile_link = f"<a href='tg://user?id={sender_id}&hash={sender_hash}'>ПРОФИЛГА ЎТИШ</a>"
-        elif sender_id:
-            profile_link = f"<a href='tg://user?id={sender_id}'>ПРОФИЛГА ЎТИШ</a>"
+        # --- User ID ---
+        id_display = str(sender_id) if sender_id else "БЕРКИТИЛГАН"
+
+        # --- КЛИЕНТ ЛИЧКАСИ (profilga o'tish): avval ID, bo'lmasa username ---
+        if sender_id:
+            profile_link = f"<a href='tg://user?id={sender_id}'>Клиент личкаси</a>"
+        elif username:
+            profile_link = f"<a href='https://t.me/{username}'>Клиент личкаси</a>"
         else:
-            profile_link = "БЕРКИТИЛГАН"
+            profile_link = "Клиент личкаси: ЁПИҚ"
 
-        phone = normalize_phone(sender.phone) if sender.phone else None
-        if not phone:
-            for m in PHONE_RE.finditer(text):
-                phone = normalize_phone(m.group(0))
-                if phone:
-                    break
-
-        phone_display = phone if phone else "БЕРКИТИЛГАН"
+        # --- КЛИЕНТГА ЁЗИШ (chatga o'tish): avval username, bo'lmasa ID, bo'lmasa yopiq ---
+        if username:
+            write_link = f"<a href='https://t.me/{username}'>Клиентга ёзиш</a>"
+        elif sender_id:
+            write_link = f"<a href='tg://user?id={sender_id}'>Клиентга ёзиш</a>"
+        else:
+            write_link = "Клиентга ёзиш: ЁПИҚ"
 
         message_text = (
-            f"🚨 <b>ЯНГИ ЗАКАЗ</b>\n"
-            f"________________\n\n"
-            f"{text}\n"
-            f"________________\n\n"
-            f"📍 <b>ГУРУҲ : </b> {group_name}\n"
-            f"👤 <b>КЛЕНТ ЛИЧКАСИ : </b> {owner_display}\n"
-            f"📞 <b>КЛЕНТ НОМЕРИ : </b> {phone_display}\n\n"
-            f"👉🏻 <b></b> {profile_link}"
+            f"👤 <b>{full_name}</b>\n"
+            f"🆔 User ID: <code>{id_display}</code>\n\n"
+            f"{html.escape(text)}\n\n"
+            f"👤 {profile_link}\n"
+            f"✍️ {write_link}"
         )
 
         for target_id in TARGET_CHAT_IDS:
             await client.send_message(
                 target_id,
                 message_text,
-                parse_mode='html'
+                parse_mode='html',
+                link_preview=False
             )
             print(f"📨 Yuborildi → {target_id}")
 
