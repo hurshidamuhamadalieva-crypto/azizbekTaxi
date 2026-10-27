@@ -1,7 +1,8 @@
 import re
 import html
 import asyncio
-from telethon import TelegramClient, events
+from telethon import TelegramClient, events, types, utils
+from telethon.extensions import html as telegram_html
 
 # =================== TELEGRAM API ===================
 api_id = 39524864
@@ -153,18 +154,18 @@ async def handler(event):
         # --- User ID ---
         id_display = str(sender_id) if sender_id else "БЕРКИТИЛГАН"
 
-        # --- КЛИЕНТ ЛИЧКАСИ (profilga o'tish): avval ID, bo'lmasa username ---
-        if sender_id:
+        # --- Profil: username bo'lsa to'g'ridan-to'g'ri profilni ochish ---
+        if username:
+            profile_link = f"<a href='https://t.me/{username}?profile'>Клиент личкаси</a>"
+        elif sender_id and isinstance(sender, types.User):
             profile_link = f"<a href='tg://user?id={sender_id}'>Клиент личкаси</a>"
-        elif username:
-            profile_link = f"<a href='https://t.me/{username}'>Клиент личкаси</a>"
         else:
             profile_link = "Клиент личкаси: ЁПИҚ"
 
         # --- КЛИЕНТГА ЁЗИШ (chatga o'tish): avval username, bo'lmasa ID, bo'lmasa yopiq ---
         if username:
             write_link = f"<a href='https://t.me/{username}'>Клиентга ёзиш</a>"
-        elif sender_id:
+        elif sender_id and isinstance(sender, types.User):
             write_link = f"<a href='tg://user?id={sender_id}'>Клиентга ёзиш</a>"
         else:
             write_link = "Клиентга ёзиш: ЁПИҚ"
@@ -177,11 +178,37 @@ async def handler(event):
             f"✍️ {write_link}"
         )
 
+        # Profil cheklangan bo'lsa, asl xabardan yuboruvchini ochish mumkin.
+        chat = event.chat
+        chat_username = getattr(chat, 'username', None)
+        source_url = None
+        if chat_username:
+            source_url = f"https://t.me/{chat_username}/{event.id}"
+        elif isinstance(chat, types.Channel):
+            source_url = f"https://t.me/c/{chat.id}/{event.id}"
+        if source_url:
+            message_text += f"\n🔗 <a href='{source_url}'>Асл хабар орқали профилга ўтиш</a>"
+
+        # ID havolasini access_hash bilan haqiqiy Telegram mention'iga aylantirish.
+        message_text, entities = telegram_html.parse(message_text)
+        if isinstance(sender, types.User):
+            input_user = utils.get_input_user(sender)
+            entities = [
+                types.InputMessageEntityMentionName(
+                    offset=entity.offset,
+                    length=entity.length,
+                    user_id=input_user,
+                )
+                if isinstance(entity, types.MessageEntityMentionName)
+                and entity.user_id == sender_id else entity
+                for entity in entities
+            ]
+
         for target_id in TARGET_CHAT_IDS:
             await client.send_message(
                 target_id,
                 message_text,
-                parse_mode='html',
+                formatting_entities=entities,
                 link_preview=False
             )
             print(f"📨 Yuborildi → {target_id}")
